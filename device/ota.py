@@ -17,6 +17,13 @@ PENDING_FILE = "ota_pending.json"
 PROTECTED = ("main.py", "config.py")
 CHUNK = 1024
 
+# "EMMA" glides across the bottom of the CHECKING UPDATES screen
+EMMA_TEXT = "EMMA"
+EMMA_RGB = (255, 105, 180)    # pink
+EMMA_Y = 200                  # below the status text
+EMMA_STEP = 2                 # pixels per frame
+EMMA_FRAME_MS = 25            # 2 px every 25 ms = 80 px/s, about 4.5 s to cross
+
 # ---------------------------------------------------------------- file helpers
 def _exists(p):
     try:
@@ -77,12 +84,72 @@ def _cleanup_new(paths):
 # ---------------------------------------------------------------- screen
 class _UI:
     def __init__(self):
+        self.emma = None
         try:
             import hw
             self.hw = hw
         except Exception as e:
             print("OTA: no display:", e)
             self.hw = None
+
+    # ---- gliding name -------------------------------------------------------------
+    def emma_start(self):
+        """Pre-render the text once (with EMMA_STEP black columns in front, which wipe the
+        previous position as it moves) and draw it at the left edge."""
+        if not self.hw:
+            return
+        h = self.hw
+        color = h.C(*EMMA_RGB)
+        pad = EMMA_STEP
+        W = pad + h.text_w(EMMA_TEXT)
+        H = h.font.height
+        buf = bytearray(W * H * 2)                    # zeros = black
+        x = pad
+        for ch in EMMA_TEXT:
+            b, cw, chh = h.font.get_letter(ch, color, 0)
+            for row in range(chh):
+                d = (row * W + x) * 2
+                buf[d:d + cw * 2] = b[row * cw * 2:(row + 1) * cw * 2]
+            x += cw + 1
+        self.emma = [buf, W, H, -pad, time.ticks_ms()]   # x so the first letter starts at 0
+        self._emma_draw()
+
+    def _emma_draw(self):
+        buf, W, H, ex, _ = self.emma
+        x0 = max(0, ex)
+        x1 = min(320, ex + W)
+        cw = x1 - x0
+        if cw <= 0:
+            return
+        off = x0 - ex
+        if off == 0 and cw == W:
+            data = buf
+        else:                                          # clip at the screen edges
+            data = bytearray(cw * H * 2)
+            for row in range(H):
+                s0 = (row * W + off) * 2
+                data[row * cw * 2:(row + 1) * cw * 2] = buf[s0:s0 + cw * 2]
+        self.hw.display.blit(x0, EMMA_Y, cw, H, data)
+
+    def emma_tick(self):
+        """Advance one frame if it's time. Returns False once the text is off the right edge."""
+        if not self.emma:
+            return False
+        now = time.ticks_ms()
+        if time.ticks_diff(now, self.emma[4]) < EMMA_FRAME_MS:
+            return True
+        self.emma[4] = now
+        self.emma[3] += EMMA_STEP
+        self._emma_draw()
+        if self.emma[3] + EMMA_STEP >= 320:            # only the black lead-in is left on screen
+            self.emma = None
+            return False
+        return True
+
+    def emma_finish(self):
+        """Let the glide run to the right edge before the screen changes."""
+        while self.emma_tick():
+            time.sleep_ms(5)
 
     def msg(self, line1, line2="", color=None):
         print("OTA:", line1, line2)
@@ -111,7 +178,7 @@ class _UI:
         return self.hw.read_touch_filtered() is not None
 
 # ---------------------------------------------------------------- network
-def _connect(cfg):
+def _connect(cfg, ui=None):
     import network
     try:
         import rp2
@@ -129,7 +196,10 @@ def _connect(cfg):
                 print("OTA: WiFi failed, status", wlan.status())
                 wlan.active(False)
                 return None
-            time.sleep_ms(200)
+            for _ in range(20):                      # ~200 ms, animating the name meanwhile
+                if ui:
+                    ui.emma_tick()
+                time.sleep_ms(10)
     print("OTA: WiFi", wlan.ifconfig()[0])
     return wlan
 
@@ -202,7 +272,9 @@ def run():
 
     local = local_version()
     ui.msg("CHECKING UPDATES", "v%d - %s" % (local, config.WIFI_SSID))
-    wlan = _connect(config)
+    ui.emma_start()
+    wlan = _connect(config, ui)
+    ui.emma_finish()
     if wlan is None:
         ui.msg("NO WIFI", "starting offline")
         time.sleep(1)
