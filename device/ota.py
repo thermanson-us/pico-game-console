@@ -95,6 +95,13 @@ class _UI:
 
     # ---- gliding name -------------------------------------------------------------
     def emma_start(self):
+        try:
+            self._emma_start()
+        except Exception as e:
+            print("OTA: EMMA disabled:", e)
+            self.emma = None
+
+    def _emma_start(self):
         """Pre-render the text once at EMMA_SCALE (with EMMA_STEP black columns in front, which
         wipe the previous position as it moves). It starts fully off the left edge."""
         if not self.hw:
@@ -121,10 +128,13 @@ class _UI:
         for row in range(th):
             line = bytearray(W * 2)
             for col in range(tw):
-                p = small[(row * tw + col) * 2:(row * tw + col) * 2 + 2]
-                if p[0] or p[1]:
+                i = (row * tw + col) * 2
+                hi, lo = small[i], small[i + 1]
+                if hi or lo:
                     d = (pad + col * k) * 2
-                    line[d:d + 2 * k] = p * k
+                    for j in range(k):
+                        line[d + 2 * j] = hi
+                        line[d + 2 * j + 1] = lo
             for j in range(k):
                 d = (row * k + j) * W * 2
                 buf[d:d + W * 2] = line
@@ -149,6 +159,14 @@ class _UI:
         self.hw.display.blit(x0, EMMA_Y, cw, H, data)
 
     def emma_tick(self):
+        try:
+            return self._emma_tick()
+        except Exception as e:
+            print("OTA: EMMA disabled:", e)
+            self.emma = None
+            return False
+
+    def _emma_tick(self):
         """Advance one frame if it's time. Returns False once the text is off the right edge."""
         if not self.emma:
             return False
