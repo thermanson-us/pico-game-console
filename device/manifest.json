@@ -1,5 +1,5 @@
 {
- "version": 1,
+ "version": 2,
  "files": [
   {
    "path": "echogame.py",
@@ -18,8 +18,13 @@
   },
   {
    "path": "launcher.py",
-   "size": 3493,
-   "sha256": "b4634131f95d62b95e3b185ae3913e9471485f21fb92e7bf67dbb1f5489c8d33"
+   "size": 3507,
+   "sha256": "0b4d1ced715f0d98c0c43586b07150091c94e21c6bb63c5480a9fb4be05fe03e"
+  },
+  {
+   "path": "lightsout.py",
+   "size": 7808,
+   "sha256": "92dac9fdf62942f3edd09b57b269301e2865d0cbbfd6efc8a3fd4d72dd69836b"
   },
   {
    "path": "matchgame.py",
@@ -30,6 +35,11 @@
    "path": "ota.py",
    "size": 8190,
    "sha256": "e3936384cd65f663143a1f9b5cdf43f00d97d31182dbf36c70181009428ed21c"
+  },
+  {
+   "path": "tictactoe.py",
+   "size": 8812,
+   "sha256": "62329d0085cbcc40c108108cc880eeec18cc70d090b0b8c622f0145648c8245a"
   },
   {
    "path": "xglcd_font.py",

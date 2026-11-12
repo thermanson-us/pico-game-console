@@ -13,7 +13,7 @@ import time
 import sys
 import gc
 
-GAMES = ["matchgame", "echogame", None, None]     # slots 1..4
+GAMES = ["matchgame", "echogame", "lightsout", "tictactoe"]     # slots 1..4
 
 TILE_W, TILE_H = 150, 108
 GAP = 8
