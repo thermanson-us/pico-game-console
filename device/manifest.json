@@ -1,0 +1,45 @@
+{
+ "version": 1,
+ "files": [
+  {
+   "path": "echogame.py",
+   "size": 6451,
+   "sha256": "6c85bf7f66722949de2d0559f117ed0bf28bb0969f83638c241d0d75a5fa4d9c"
+  },
+  {
+   "path": "hw.py",
+   "size": 3896,
+   "sha256": "e53c38f0365367a8d00ab63996f5d086cc7a0d5a39afc30ed5525e24bd9fa0f6"
+  },
+  {
+   "path": "ili9341_par.py",
+   "size": 7926,
+   "sha256": "2d6ed4200a423eed31b5b6547411807efc8a984e28098dc765bfd8b501387745"
+  },
+  {
+   "path": "launcher.py",
+   "size": 3493,
+   "sha256": "b4634131f95d62b95e3b185ae3913e9471485f21fb92e7bf67dbb1f5489c8d33"
+  },
+  {
+   "path": "matchgame.py",
+   "size": 7443,
+   "sha256": "b78e8aa31d4d7f9769e8f34451c42fbff1c81ee10d79420c92ba5e52f31c35f6"
+  },
+  {
+   "path": "ota.py",
+   "size": 8190,
+   "sha256": "e3936384cd65f663143a1f9b5cdf43f00d97d31182dbf36c70181009428ed21c"
+  },
+  {
+   "path": "xglcd_font.py",
+   "size": 6665,
+   "sha256": "99392b7b8c3005a25cc0fa334dcde818301a2561ce890f69d22c129c99817e3e"
+  },
+  {
+   "path": "fonts/Unispace12x24.c",
+   "size": 24248,
+   "sha256": "d4bc6bb0cf4acd6983829e81cf57930aa85edeb85a216d5d3d146236452d3311"
+  }
+ ]
+}
