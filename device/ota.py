@@ -20,9 +20,10 @@ CHUNK = 1024
 # "EMMA" glides across the bottom of the CHECKING UPDATES screen
 EMMA_TEXT = "EMMA"
 EMMA_RGB = (255, 105, 180)    # pink
-EMMA_Y = 200                  # below the status text
+EMMA_SCALE = 2                # 2 = double size (48 px tall)
+EMMA_Y = 178                  # below the status text
 EMMA_STEP = 2                 # pixels per frame
-EMMA_FRAME_MS = 25            # 2 px every 25 ms = 80 px/s, about 4.5 s to cross
+EMMA_FRAME_MS = 25            # 2 px every 25 ms = 80 px/s, about 5.3 s from off-left to off-right
 
 # ---------------------------------------------------------------- file helpers
 def _exists(p):
@@ -94,24 +95,40 @@ class _UI:
 
     # ---- gliding name -------------------------------------------------------------
     def emma_start(self):
-        """Pre-render the text once (with EMMA_STEP black columns in front, which wipe the
-        previous position as it moves) and draw it at the left edge."""
+        """Pre-render the text once at EMMA_SCALE (with EMMA_STEP black columns in front, which
+        wipe the previous position as it moves). It starts fully off the left edge."""
         if not self.hw:
             return
         h = self.hw
         color = h.C(*EMMA_RGB)
+        k = EMMA_SCALE
         pad = EMMA_STEP
-        W = pad + h.text_w(EMMA_TEXT)
-        H = h.font.height
-        buf = bytearray(W * H * 2)                    # zeros = black
-        x = pad
+        tw = h.text_w(EMMA_TEXT)
+        th = h.font.height
+        # 1x render
+        small = bytearray(tw * th * 2)
+        x = 0
         for ch in EMMA_TEXT:
             b, cw, chh = h.font.get_letter(ch, color, 0)
             for row in range(chh):
-                d = (row * W + x) * 2
-                buf[d:d + cw * 2] = b[row * cw * 2:(row + 1) * cw * 2]
+                d = (row * tw + x) * 2
+                small[d:d + cw * 2] = b[row * cw * 2:(row + 1) * cw * 2]
             x += cw + 1
-        self.emma = [buf, W, H, -pad, time.ticks_ms()]   # x so the first letter starts at 0
+        # scale up k x k
+        W = pad + tw * k
+        H = th * k
+        buf = bytearray(W * H * 2)                    # zeros = black
+        for row in range(th):
+            line = bytearray(W * 2)
+            for col in range(tw):
+                p = small[(row * tw + col) * 2:(row * tw + col) * 2 + 2]
+                if p[0] or p[1]:
+                    d = (pad + col * k) * 2
+                    line[d:d + 2 * k] = p * k
+            for j in range(k):
+                d = (row * k + j) * W * 2
+                buf[d:d + W * 2] = line
+        self.emma = [buf, W, H, -W, time.ticks_ms()]   # completely off the left edge
         self._emma_draw()
 
     def _emma_draw(self):
