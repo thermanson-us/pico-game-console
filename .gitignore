@@ -1,0 +1,9 @@
+# secrets - lives only on the Pico
+device/config.py
+# per-device state
+device/version.json
+device/ota_pending.json
+device/echo_best.txt
+*.new
+__pycache__/
+*.stl
